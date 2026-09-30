@@ -4,6 +4,7 @@ import ssi.Paquete.Paquete;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import ssi.Utils.Checker;
+import ssi.Utils.Firmador;
 
 import java.security.MessageDigest;
 import java.security.Security;
@@ -35,7 +36,7 @@ public class AutoridadDeSellado  {
         hashMaker.update(factura_cif);
         hashMaker.update(firma);
         hashMaker.update(now.toString().getBytes());
-        paquete.anadirBloque("sello", hashMaker.digest());
+        paquete.anadirBloque("sello", Firmador.firmar("AutoridadDeSellado",hashMaker.digest()));
         System.out.println("sellado el paquete");
         paquete.escribirPaquete("paquete.pkt");
         System.out.println("------------ fin de Sellado ------------");

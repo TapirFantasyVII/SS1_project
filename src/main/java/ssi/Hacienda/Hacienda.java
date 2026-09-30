@@ -29,9 +29,9 @@ public class Hacienda {
         byte[] factura_cif=paquete.getContenidoBloque("factura cifrada");
         byte[] firma=paquete.getContenidoBloque("firma");
         byte[] fecha=paquete.getContenidoBloque("fecha");
-        byte[] sello=paquete.getContenidoBloque("sello");
+        byte[] selloCif=paquete.getContenidoBloque("sello");
 
-        if(fecha == null || sello ==null){
+        if(fecha == null || selloCif ==null){
             System.out.println("este paquete no paso por la autoridad de sellado");
 
         }else{
@@ -41,6 +41,18 @@ public class Hacienda {
             hashMaker.update(factura_cif);
             hashMaker.update(firma);
             hashMaker.update(fecha);
+            //descifrado del sello
+            Cipher cifradorAsimetrico = Cipher.getInstance("RSA", "BC");
+            KeyFactory generadorClaves = KeyFactory.getInstance("RSA", "BC");
+            //desencriptado de la factura
+            //cargar contraseña privada de Hacienda
+            byte[] clavePublicaSelladoByte = Files.readAllBytes(Paths.get("keys/AutoridadDeSellado.publica"));
+            PublicKey ClavePublicaSellado= generadorClaves.generatePublic(
+                    new X509EncodedKeySpec(clavePublicaSelladoByte)
+            );
+            cifradorAsimetrico.init(Cipher.DECRYPT_MODE, ClavePublicaSellado);
+            //descifrado de la contraseña simetrica
+            byte[] sello =cifradorAsimetrico.doFinal(selloCif);
 
             if(!Arrays.equals(sello, hashMaker.digest())){
                 System.out.println("problemas con el sello no es una factura valida");
